@@ -1,6 +1,7 @@
 "use client"
 
 import { setPlayerCard } from "@/app/actions"
+import { ArrowUp } from "lucide-react"
 
 import { useState } from "react"
 
@@ -38,7 +39,9 @@ const DeckForm = ({ playerDeck }: DeckFormProps) => {
     return (
         <>
             <Drawer>
-                <DrawerTrigger>Open</DrawerTrigger>
+                <DrawerTrigger>
+                    Open
+                </DrawerTrigger>
                 <DrawerContent>
                     <DrawerHeader>
                         <DrawerTitle>Qual atrocidade você dirá hoje?</DrawerTitle>
@@ -64,7 +67,7 @@ const DeckForm = ({ playerDeck }: DeckFormProps) => {
                 </DrawerContent>
             </Drawer>
             <span>{selectedCard}</span>
-            <button disabled={!selectedCard} onClick={handleSendCard}>Send Card</button>
+            <button className="absolute right-[30rem] bottom-1/3" disabled={!selectedCard} onClick={handleSendCard}><ArrowUp className="bg-white p-2 rounded-full border shadow border-neutral-300" size={40} /></button>
         </>
     );
 }
