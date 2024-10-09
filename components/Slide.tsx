@@ -17,10 +17,10 @@ const Slide = () => {
     }
 
     return (
-        <div className="">
-            <button onClick={previousCard}><ArrowLeft className="bg-white p-2 rounded-full border shadow border-neutral-300 fixed left-1/3 top-1/2 transform -translate-x-1/3 translate-y-full" size={40} /></button>
-            <button onClick={nextCard}><ArrowRight className="bg-white p-2 rounded-full border shadow border-neutral-300 fixed right-1/3 top-1/2 transform -translate-x-1/3 translate-y-full" size={40} /></button>
+        <div className="grid grid-cols-3 place-items-center">
+            <button onClick={previousCard}><ArrowLeft className="bg-white p-2 rounded-full border shadow border-neutral-300 " size={40} /></button>
             <Card className="text-black flex font-bold bg-white border border-neutral-400 shadow">{cartas[currentIndex]}</Card>
+            <button onClick={nextCard}><ArrowRight className="bg-white p-2 rounded-full border shadow border-neutral-300" size={40} /></button>
         </div>
     )
 }

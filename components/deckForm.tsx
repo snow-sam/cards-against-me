@@ -3,7 +3,7 @@
 import { setPlayerCard } from "@/app/actions"
 import { ArrowUp } from "lucide-react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 
 import {
     Drawer,
@@ -19,13 +19,20 @@ import Image from "next/image"
 import Card from "@/components/Card"
 
 import CardsImage from '@/public/cards.svg'
+import { getPlayerDeck } from '@/app/actions'
 
-type DeckFormProps = {
-    playerDeck: string[]
-}
 
-const DeckForm = ({ playerDeck }: DeckFormProps) => {
+const DeckForm = () => {
     const [selectedCard, setSelectedCard] = useState<string | null>(null);
+    const [playerDeck, setPlayerDeck] = useState<string[]>([]);
+
+    useEffect(() => {
+        async function fetchPlayerDeck() {
+          const playerDeck = await getPlayerDeck()
+          setPlayerDeck(playerDeck)
+        }
+        fetchPlayerDeck()
+      }, [])
 
     const handleSubmit = (formData: FormData) => {
         const card = formData.get("card") as string | null;
