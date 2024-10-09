@@ -15,6 +15,11 @@ import {
     DrawerTrigger,
 } from "@/components/ui/drawer"
 
+import Image from "next/image"
+import Card from "@/components/Card"
+
+import CardsImage from '@/public/cards.svg'
+
 type DeckFormProps = {
     playerDeck: string[]
 }
@@ -38,11 +43,13 @@ const DeckForm = ({ playerDeck }: DeckFormProps) => {
 
     return (
         <>
+            <button disabled={!selectedCard} onClick={handleSendCard}><ArrowUp className="bg-white p-2 rounded-full border shadow border-neutral-300 fixed left-1/2 transform -translate-x-1/2" size={40} /></button>
             <Drawer>
-                <DrawerTrigger>
-                    Open
+                <DrawerTrigger className="fixed bottom-0">
+                    <Image className="w-full" alt="Cards drawer" src={CardsImage}/>
+                    {selectedCard && <Card className="text-black flex font-bold bg-white border border-neutral-400 shadow absolute inset-x-16 -bottom-28 z-100">{selectedCard}</Card>}
                 </DrawerTrigger>
-                <DrawerContent>
+                <DrawerContent className="absolute bottom-4">
                     <DrawerHeader>
                         <DrawerTitle>Qual atrocidade você dirá hoje?</DrawerTitle>
                         <DrawerDescription className="text-neutral-600">Lembrando que quanto pior, melhor.</DrawerDescription>
@@ -66,8 +73,6 @@ const DeckForm = ({ playerDeck }: DeckFormProps) => {
                     </form>
                 </DrawerContent>
             </Drawer>
-            <span>{selectedCard}</span>
-            <button className="absolute right-[30rem] bottom-1/3" disabled={!selectedCard} onClick={handleSendCard}><ArrowUp className="bg-white p-2 rounded-full border shadow border-neutral-300" size={40} /></button>
         </>
     );
 }
