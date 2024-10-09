@@ -2,7 +2,6 @@
 
 import fs from 'fs/promises';
 import path from 'path';
-import { FormEvent } from 'react';
 
 export const getQuestion = async (): Promise<string> => {
     const questions = path.join(process.cwd(), 'public', 'data.json');
@@ -26,8 +25,4 @@ export const getPlayerDeck = async (): Promise<string[]> => {
       console.error('Error reading the JSON file:', error);
       return [];
     }
-}
-
-export const setPlayerCard = async (card: string) => {
-    console.log(card)
 }
