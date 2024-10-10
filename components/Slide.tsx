@@ -11,7 +11,6 @@ type SlideProps = {
 
 const Slide = ({ cards, voteFnc }: SlideProps) => {
     const [currentIndex, setCurrentIndex] = useState(0)
-
     const nextCard = () => {
         setCurrentIndex(currentIndex === cards.length - 1 ? 0 : currentIndex + 1)
     }
@@ -23,7 +22,7 @@ const Slide = ({ cards, voteFnc }: SlideProps) => {
     return (
         <div className="grid grid-cols-3 place-items-center">
             <button className="p-1" onClick={previousCard}><ArrowLeft className="bg-white p-2 rounded-full border shadow border-neutral-300 " size={40} /></button>
-            <Card className="text-black flex font-bold bg-white border border-neutral-400 shadow">{cards[currentIndex]}</Card>
+            <Card className="text-black flex font-bold bg-white border border-neutral-400 shadow">{cards[currentIndex]?.card}</Card>
             <button className="p-1" onClick={nextCard}><ArrowRight className="bg-white p-2 rounded-full border shadow border-neutral-300" size={40} /></button>
             <button className="fixed right-1/4 transform -translate-x-1/2 -translate-y-1/2 bottom-8  text-green-500" onClick={() => voteFnc(cards[currentIndex])}><Check className="bg-white p-2 rounded-full border shadow border-neutral-400" size={40} /></button>
         </div>
