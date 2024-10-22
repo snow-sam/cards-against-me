@@ -9,7 +9,7 @@ const server = createServer(app);
 const io = new Server(server, { cors: "*" });
 
 
-const getQuestion = async () => {
+const getAnswer = async () => {
     const questions = path.join(process.cwd(), '../public', 'arq.json');
     try {
       const data = await fs.readFile(questions, 'utf8');
@@ -26,33 +26,20 @@ class Stack {
     constructor(initialItems = []) {
         this.items = initialItems;
     }
-    push(element) {
-        this.items.push(element);
-    }
-    pop() {
-        if (this.isEmpty()) {
-            return "Underflow"; // Pilha vazia
-        }
-        return this.items.pop();
-    }
-    peek() {
-        if (this.isEmpty()) {
-            return "No elements in Stack";
-        }
-        return this.items[this.items.length - 1];
-    }
-    isEmpty() {
-        return this.items.length === 0;
-    }
-    size() {
-        return this.items.length;
-    }
-    clear() {
-        this.items = [];
-    }
-    printStack() {
-        console.log(this.items.join(" "));
-    }
+
+    clear = () => this.items = []
+
+    isEmpty = () => this.items.length === 0
+
+    peek = () => this.isEmpty() ? "No elements in Stack" : this.items[this.items.length - 1]
+
+    pop = () => this.isEmpty() ? "Underflow" :  this.items.pop()
+
+    printStack = () => console.log(this.items.join(" "));
+
+    push = (element) => this.items.push(element)
+
+    size = () => this.items.length
 }
 
 class Player {
@@ -62,9 +49,10 @@ class Player {
         this.blackCards = 0
         this.question = question
     }
-    win() {
-        this.blackCards++
-    }
+
+    changeCard = (oldCard, newCard) => this.cards = [...this.cards, newCard].filter(item => item !== oldCard)
+
+    win = () => this.blackCards++
 }
 
 class Round {
@@ -73,7 +61,7 @@ class Round {
         this.votes = votes
     }
 
-    getWinner() {
+    getWinner = () => {
         const voteCount = this.votes.reduce((acc, playerId) => {
             acc[playerId] = (acc[playerId] || 0) + 1;
             return acc;
@@ -92,84 +80,100 @@ class Round {
             .map((playerId) => playerId);
     }
 
-    vote(playerId){
-        this.votes.push(playerId)
-    }
+    isFinished = (playersLength) => this.votes.length === playersLength
 
-    pushCard(card){
-        this.cards.push(card)
-    }
-
-    canVote(playersLength){
-        return this.cards.length === playersLength
-    }
-
-    isFinished(playersLength){
-        return this.votes.length === playersLength
-    }
+    pushCard = (card) => this.cards.push(card)
+    
+    vote = (playerId) => this.votes.push(playerId)
 }
 
-const sala = {
-    // Preencher Decks
-    DeckWhite: new Stack(await getQuestion()),
-    DeckBlack: new Stack(["Pgt1", "Pgt2", "Pgt3", "Pgt4", "Pgt5"]),
-    Players: {},
-    Rounds: [new Round()]
+class Room {
+
+    constructor() {
+        this.Players = {}
+        this.Rounds = [new Round()]
+    }
+
+    addPlayer = (playerId) => this.Players[playerId] = new Player(playerId, room.getQuestionCard(), room.pickAnswerCards(10))
+
+    canVote = () => this.getCurrentRound().cards.length == Object.keys(this.Players).length
+
+    fillQuestions = async () => this.DeckBlack = new Stack(["Pgt1", "Pgt2", "Pgt3", "Pgt4", "Pgt5"])
+
+    fillAnswers = async () => this.DeckWhite = new Stack(await getAnswer())
+
+    getCurrentRound = () => this.Rounds[this.Rounds.length - 1]
+
+    getPlayer = (playerId) => this.Players[playerId]
+
+    getPLayersNum = () => Object.keys(this.Players).length
+
+    getQuestionCard = () => this.DeckBlack ? this.DeckBlack.peek() : None
+
+    hasAnswerCards = () => this.DeckWhite && !this.DeckWhite.isEmpty()
+
+    isCurrentRoundFinished = () => this.getCurrentRound().votes.length == Object.keys(this.Players).length
+
+    newRound = () => this.Rounds.push(new Round())
+    
+    pickAnswerCards = (n_cards) => {
+        const cards = []
+        for (let i = 0; i < n_cards; i++) {
+            if (room.hasAnswerCards()) {
+                cards.push(this.DeckWhite.pop());
+            } else {
+                break;
+            }
+        }
+        return cards
+    }
+    
+    removePlayer = (playerId) => delete this.Players[playerId]
 }
+
+
+
+const room = new Room()
+await room.fillAnswers()
+await room.fillQuestions()
+
 
 // Quando um cliente se conectar
 io.on('connection', (socket) => {
-    console.log('Um cliente se conectou');
-    const playerCards = []
-    for (let i = 0; i < 10; i++) {
-        if (!sala.DeckWhite.isEmpty()) {
-            playerCards.push(sala.DeckWhite.pop());
-        } else {
-            break; // Parar se a pilha estiver vazia antes de remover os 10 itens
-        }
-    }
 
-    socket.data = new Player(socket.id, sala.DeckBlack.peek(), playerCards)
-    sala.Players[socket.data.id] = socket.data
-    // Dar Cartas
+    room.addPlayer(socket.id)
+    socket.data = room.getPlayer(socket.id)
 
-    console.log(sala)
+    console.log(room)
 
-    socket.on('_getData', (callback) => {
-        callback(sala.Players[socket.data.id])
-    });
+    socket.on('_getData', (callback) => callback(room.getPlayer(socket.data.id)));
 
     socket.on('sendCard', (card) => {
-        console.log('Jogador', socket.data.id, ' mandou a carta: ', card);
-        const currentRound = sala.Rounds[sala.Rounds.length - 1]
-        currentRound.pushCard({card, playerId: socket.data.id})
-        sala.Players[socket.data.id].cards = sala.Players[socket.data.id].cards.filter(item => item !== card)
-        sala.Players[socket.data.id].cards.push(sala.DeckWhite.pop())
-        console.log(sala)
-        if (currentRound.canVote(Object.keys(sala.Players).length))
+        const player = room.getPlayer(socket.data.id)
+        const currentRound = room.getCurrentRound()
+        currentRound.pushCard({card, playerId: player.id})
+
+        player.changeCard(card, room.pickAnswerCards(1))
+
+        if (room.canVote())
             io.emit("vote", currentRound.cards)
     });
 
     socket.on('vote_', (card) => {
-        console.log('Jogador', card.playerId, ' votou na carta: ', card.card)
-        const currentRound = sala.Rounds[sala.Rounds.length - 1]
+        const currentRound = room.getCurrentRound()
         currentRound.vote(card.playerId)
-        if (currentRound.isFinished(Object.keys(sala.Players).length)) {
+        
+        if (room.isCurrentRoundFinished()) {
             io.emit("reset", currentRound.getWinner())
-            sala.Rounds.push(new Round())
+            room.newRound()
         }
     });
 
-    socket.on('disconnect', () => {
-        console.log('Cliente desconectado');
-        delete sala.Players[socket.data.id]
-    });
+    socket.on('disconnect', () => room.removePlayer(socket.data.id));
 });
 
-
-// Servidor ouvindo na porta 4000 no IP 192.168.15.19
 const PORT = 4000;
-const HOST = '192.168.15.19';
+const HOST = "127.0.0.1";
 
 server.listen(PORT, HOST, () => {
     console.log(`Servidor rodando em http://${HOST}:${PORT}`);

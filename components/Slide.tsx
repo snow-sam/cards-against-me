@@ -11,6 +11,7 @@ type SlideProps = {
 
 const Slide = ({ cards, voteFnc }: SlideProps) => {
     const [currentIndex, setCurrentIndex] = useState(0)
+    
     const nextCard = () => {
         setCurrentIndex(currentIndex === cards.length - 1 ? 0 : currentIndex + 1)
     }
