@@ -1,5 +1,3 @@
-"use client"
-
 import DeckForm from '@/components/deckForm'
 
 export default function Home() {
